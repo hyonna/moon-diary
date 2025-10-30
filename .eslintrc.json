@@ -1,0 +1,86 @@
+{
+  "env": {
+    "browser": true,
+    "es6": true,
+    "node": true
+  },
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "sourceType": "module",
+    "ecmaFeatures": {
+      "jsx": true
+    },
+    "ecmaVersion": 11
+  },
+  "plugins": ["unused-imports"],
+  "extends": [
+    "next/core-web-vitals",
+    "plugin:@typescript-eslint/recommended", // ts 권장
+    "plugin:prettier/recommended", // eslint의 포매팅을 prettier로 사용.
+    "prettier" // eslint-config-prettier prettier와 중복된 eslint 규칙 제거
+  ],
+  "rules": {
+    "no-unused-vars": "off", // or "@typescript-eslint/no-unused-vars": "off",
+    "unused-imports/no-unused-imports": "error",
+    "unused-imports/no-unused-vars": [
+      "warn",
+      { "vars": "all", "varsIgnorePattern": "^_", "args": "after-used", "argsIgnorePattern": "^_" }
+    ],
+    "no-console": 0,
+    "import/no-unresolved": "off",
+    "react/react-in-jsx-scope": "off",
+    "react-hooks/rules-of-hooks": "error",
+    "react-hooks/exhaustive-deps": "warn",
+    "react/display-name": "off",
+    "react/no-unknown-property": [
+      2,
+      {
+        "ignore": [
+          "jsx"
+        ]
+      }
+    ],
+    "no-useless-catch": "off",
+    "@typescript-eslint/no-explicit-any": "off",
+    "@typescript-eslint/no-unused-vars": "off",
+    "@typescript-eslint/explicit-function-return-type": "error",
+    "import/order": [
+      "error",
+      {
+        "groups": ["builtin", "external", "internal"],
+        "pathGroupsExcludedImportTypes": ["react**"],
+        "pathGroups": [
+          { "pattern": "react**", "group": "builtin", "position": "before" },
+          { "pattern": "next**", "group": "builtin", "position": "before" },
+          { "pattern": "classnames", "group": "external", "position": "after" },
+          { "pattern": "lodash", "group": "external", "position": "after" },
+          { "pattern": "@app/**", "group": "internal", "position": "after" },
+          { "pattern": "@components/**", "group": "internal", "position": "after" },
+          { "pattern": "@hooks/**", "group": "internal", "position": "after" },
+          { "pattern": "@const/**", "group": "internal", "position": "after" },
+          { "pattern": "@interface/**", "group": "internal", "position": "after" },
+          { "pattern": "@lib/**", "group": "internal", "position": "after" },
+          { "pattern": "@service/**", "group": "internal", "position": "after" },
+          { "pattern": "@store/**", "group": "internal", "position": "after" },
+          { "pattern": "@styles/**", "group": "internal", "position": "after" },
+          { "pattern": "@stories/**", "group": "internal", "position": "after" }
+        ],
+        "alphabetize": {
+          "order": "asc",
+          "caseInsensitive": true
+        }
+      }
+    ]
+  },
+  "settings": {
+    "react": {
+      "version": "detect"
+    },
+    "import/resolver": {
+      "node": {
+        "paths": ["src"],
+        "extensions": "['.js', '.jsx', '.ts', '.tsx']"
+      }
+    }
+  }
+}
