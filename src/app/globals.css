@@ -3,13 +3,84 @@
 @tailwind utilities;
 
 :root {
-  --bg-from: #ffffff;
-  --bg-to: #ffe6f3;
+  --bg-primary: #ffffff;
+  --bg-secondary: #fafafa;
+  --border-color: #dbdbdb;
+  --text-primary: #262626;
+  --text-secondary: #8e8e8e;
 }
+
+.dark {
+  --bg-primary: #000000;
+  --bg-secondary: #121212;
+  --border-color: #262626;
+  --text-primary: #ffffff;
+  --text-secondary: #a8a8a8;
+}
+
 html,
 body {
   height: 100%;
 }
+
 body {
-  @apply text-gray-900 bg-gradient-to-b from-[var(--bg-from)] to-[var(--bg-to)];
+  @apply bg-[var(--bg-secondary)] text-[var(--text-primary)];
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* 페이지 컨테이너: 최대 너비 520px, 최소 너비 320px */
+.page-container {
+  min-width: 320px;
+  max-width: 520px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* 뷰포트 너비가 520px 이하일 때는 전체 너비 사용 */
+@media (max-width: 520px) {
+  .page-container {
+    max-width: 100%;
+  }
+}
+
+/* 인스타그램/Threads 스타일 카드 */
+.ig-card {
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 0.5rem;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05);
+}
+
+.dark .ig-card {
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+/* 버튼 스타일 */
+.ig-button {
+  background-color: var(--text-primary);
+  color: var(--bg-primary);
+  border-radius: 0.5rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.ig-button:hover {
+  opacity: 0.9;
+}
+
+.ig-button:active {
+  opacity: 0.7;
+}
+
+.ig-button-secondary {
+  @apply bg-transparent border border-[var(--border-color)] text-[var(--text-primary)] rounded-lg font-semibold;
+  @apply hover:bg-[var(--bg-secondary)] active:opacity-70;
+  transition: all 0.2s ease;
+}
+
+/* 다크 모드에서 비활성화 버튼 색상 */
+.dark .ig-button:disabled,
+.dark button:disabled {
+  background-color: #2a2a2a;
+  color: #5a5a5a;
 }

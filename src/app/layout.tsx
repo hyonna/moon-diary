@@ -1,4 +1,5 @@
 import './globals.css'
+import { Providers } from './Providers'
 
 export const metadata = {
   title: 'Moon-Mood Diary',
@@ -7,8 +8,14 @@ export const metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ko">
-      <body className="min-h-screen antialiased">{children}</body>
+    <html lang="ko" suppressHydrationWarning>
+      <body className="min-h-screen antialiased">
+        <Providers>
+          <div className="page-container">
+            {children}
+          </div>
+        </Providers>
+      </body>
     </html>
   )
 }

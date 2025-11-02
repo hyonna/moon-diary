@@ -1,12 +1,27 @@
-'use client'
+'use client';
+
+import { useState } from 'react';
+import DiaryFeed from '@/components/DiaryFeed';
+import DateFilter from '@/components/DateFilter';
+import BottomNavigation from '@/components/BottomNavigation';
 
 export default function HomePage() {
+  const [dateFilter, setDateFilter] = useState<string | null>(null);
+
   return (
-    <main className="max-w-4xl mx-auto px-6 py-10">
-      <h1 className="text-3xl font-bold">Moon-Mood Diary</h1>
-      <p className="text-sm text-gray-600 mt-2">
-        Next.js + Tailwind 환경 세팅 완료. ‘diary’ 페이지에서 본격 개발 시작!
-      </p>
-    </main>
-  )
+    <>
+      <header className="sticky top-0 z-40 bg-[var(--bg-primary)] border-b border-[var(--border-color)] backdrop-blur-sm bg-opacity-80">
+            <div className="flex items-center justify-between px-4 py-3">
+              <h1 className="text-xl font-bold text-[var(--text-primary)]">🌙 Moon Diary</h1>
+            </div>
+      </header>
+
+      <main className="px-4 py-4 pb-24">
+        <DateFilter onFilterChange={setDateFilter} />
+        <DiaryFeed dateFilter={dateFilter} />
+      </main>
+
+      <BottomNavigation />
+    </>
+  );
 }
