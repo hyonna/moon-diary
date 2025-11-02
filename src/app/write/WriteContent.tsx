@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { ArrowLeft } from 'lucide-react';
 import { MoonPhase, DiaryEntry } from '@/types/diary';
 import { diaryService } from '@/lib/supabase';
 import { dateUtils } from '@/lib/dateUtils';
@@ -88,23 +89,26 @@ export default function WriteContent() {
   return (
     <>
       <header className="sticky top-0 z-40 bg-[var(--bg-primary)] border-b border-[var(--border-color)] backdrop-blur-sm bg-opacity-80">
-        <div className="flex items-center justify-between px-4 py-3">
+        <div className="flex items-center px-4 py-3">
           <button
             onClick={() => router.back()}
-            className="text-sm font-semibold text-[var(--text-primary)]"
+            className="p-2 hover:bg-[var(--bg-secondary)] rounded-lg transition-colors"
+            aria-label="뒤로 가기"
           >
-            취소
+            <ArrowLeft className="w-5 h-5 text-[var(--text-primary)]" />
           </button>
-            <h2 className="text-lg font-semibold text-[var(--text-primary)]">
-              {isEditMode ? '일기 수정' : '새 일기'}
-            </h2>
+          <h2 className="flex-1 text-center text-lg font-semibold text-[var(--text-primary)]">
+            {isEditMode ? '일기 수정' : '새 일기'}
+          </h2>
+          {/* 아이콘과 제목의 균형을 맞추기 위한 빈 공간 */}
+          <div className="w-9" />
         </div>
       </header>
 
       <main className="px-4 py-6 pb-24">
         <div className="ig-card p-6">
-          <div className="mb-6 pb-4 border-b border-[var(--border-color)]">
-            <h2 className="text-xl font-semibold mb-1">
+          <div className="mb-6 pb-4 border-b border-[var(--border-color)] text-center">
+            <h2 className="text-xl font-semibold mb-1 text-[var(--text-primary)]">
               {dateUtils.formatDateKorean(targetDate)}
             </h2>
             <p className="text-xs text-[var(--text-secondary)]">

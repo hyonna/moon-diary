@@ -21,9 +21,9 @@ export const dateUtils = {
     return dayjs(date).format('YYYY-MM-DD');
   },
 
-  // 날짜를 한국어 형식으로 포맷
+  // 날짜를 한국어 형식으로 포맷 (2025년 11월 2일 (일))
   formatDateKorean: (date: string | Date | dayjs.Dayjs): string => {
-    return dayjs(date).format('YYYY년 M월 D일 ddd');
+    return dayjs(date).format('YYYY년 M월 D일 (ddd)');
   },
 
   // 상대적 날짜 표시 (오늘, 어제, 또는 날짜)
