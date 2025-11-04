@@ -2,8 +2,8 @@ import './globals.css'
 import { Providers } from './Providers'
 
 export const metadata = {
-  title: 'Moon-Mood Diary',
-  description: '달의 모양으로 감정을 기록하는 일기'
+  title: 'Moon Diary - 오늘의 감정, 달로 기록하다',
+  description: '오늘의 감정, 달로 기록하다'
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

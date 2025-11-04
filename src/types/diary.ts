@@ -40,6 +40,7 @@ export interface DiaryEntry {
   date: string; // YYYY-MM-DD 형식
   mood: MoonPhase;
   note?: string;
+  media_urls?: string[]; // 이미지/동영상 URL 배열
   created_at?: string;
   updated_at?: string;
 }

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import dayjs from 'dayjs';
-import { ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { dateUtils } from '@/lib/dateUtils';
 
 interface DateFilterProps {
@@ -10,20 +10,21 @@ interface DateFilterProps {
 }
 
 export default function DateFilter({ onFilterChange }: DateFilterProps) {
-  const [currentMonth, setCurrentMonth] = useState(dayjs());
-  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const now = dayjs();
+  const [currentMonth, setCurrentMonth] = useState(now);
+  const [selectedYear, setSelectedYear] = useState<number>(now.year());
+  const [selectedMonth, setSelectedMonth] = useState<number>(now.month() + 1);
+  const [showYearPicker, setShowYearPicker] = useState(false);
+  const [showMonthPicker, setShowMonthPicker] = useState(false);
 
   useEffect(() => {
-    if (selectedDate) {
-      const dateStr = dateUtils.getFirstDayOfMonth(
-        currentMonth.year(),
-        currentMonth.month() + 1
-      ).format('YYYY-MM-DD');
-      onFilterChange(dateStr);
-    } else {
-      onFilterChange(null);
-    }
-  }, [selectedDate, currentMonth, onFilterChange]);
+    // 선택된 연도/월에 해당하는 월의 첫 번째 날짜로 필터 적용
+    const monthStart = dateUtils.getFirstDayOfMonth(
+      selectedYear,
+      selectedMonth
+    ).format('YYYY-MM-DD');
+    onFilterChange(monthStart);
+  }, [selectedYear, selectedMonth, onFilterChange]);
 
   const handlePrevMonth = () => {
     setCurrentMonth((prev) => prev.subtract(1, 'month'));
@@ -33,51 +34,71 @@ export default function DateFilter({ onFilterChange }: DateFilterProps) {
     setCurrentMonth((prev) => prev.add(1, 'month'));
   };
 
-  const handleMonthSelect = () => {
-    const currentMonthStr = dateUtils.getFirstDayOfMonth(
-      currentMonth.year(),
-      currentMonth.month() + 1
-    ).format('YYYY-MM-DD');
-    
-    if (selectedDate === currentMonthStr) {
-      setSelectedDate(null);
-    } else {
-      setSelectedDate(currentMonthStr);
-    }
+  const handleYearClick = () => {
+    setShowYearPicker(!showYearPicker);
+    setShowMonthPicker(false);
   };
 
-  const handleClear = () => {
-    setSelectedDate(null);
+  const handleMonthClick = () => {
+    setShowMonthPicker(!showMonthPicker);
+    setShowYearPicker(false);
+  };
+
+  const handleYearSelect = (year: number) => {
+    setSelectedYear(year);
+    setCurrentMonth(dayjs().year(year).month(currentMonth.month()));
+    setShowYearPicker(false);
+  };
+
+  const handleMonthSelect = (month: number) => {
+    // month는 0-11 인덱스이므로 1-12로 변환하여 저장
+    setSelectedMonth(month + 1);
+    setCurrentMonth(dayjs().year(currentMonth.year()).month(month));
+    setShowMonthPicker(false);
   };
 
   const formatMonthYear = (date: dayjs.Dayjs) => {
     return date.format('YYYY년 M월');
   };
 
-  const currentMonthStr = dateUtils.getFirstDayOfMonth(
-    currentMonth.year(),
-    currentMonth.month() + 1
-  ).format('YYYY-MM-DD');
-  const isSelected = selectedDate === currentMonthStr;
+  // 연도 리스트 생성 (현재 연도 기준 ±5년)
+  const currentYear = dayjs().year();
+  const years = Array.from({ length: 11 }, (_, i) => currentYear - 5 + i);
+  
+  // 월 리스트
+  const months = Array.from({ length: 12 }, (_, i) => i + 1);
+  const monthNames = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
 
   return (
-    <div className={`ig-card p-4 mb-4 ${isSelected ? 'border-2 border-[var(--text-primary)]' : ''}`}>
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex-1 flex items-center gap-2">
+    <div className="relative mb-4">
+      <div className="ig-card p-4 border-2 border-[var(--text-primary)]">
+        <div className="flex items-center justify-between">
           <button
             onClick={handlePrevMonth}
             className="p-1 hover:bg-[var(--bg-secondary)] rounded transition-colors"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
-          <button
-            onClick={handleMonthSelect}
-            className="flex-1 text-center py-1 px-2 hover:bg-[var(--bg-secondary)] rounded transition-colors"
-          >
-            <span className="text-sm font-semibold">
-              {formatMonthYear(currentMonth)}
-            </span>
-          </button>
+          <div className="flex-1 flex items-center justify-center gap-2">
+            <button
+              onClick={handleYearClick}
+              className="px-3 py-1 hover:bg-[var(--bg-secondary)] rounded transition-colors"
+            >
+              <span className="text-sm font-semibold text-[var(--accent-yellow)]">
+                {currentMonth.format('YYYY')}
+              </span>
+            </button>
+            <span className="text-[var(--text-secondary)]">년</span>
+            <button
+              onClick={handleMonthClick}
+              className="px-3 py-1 hover:bg-[var(--bg-secondary)] rounded transition-colors"
+            >
+              <span className="text-sm font-semibold text-[var(--accent-yellow)]">
+                {currentMonth.format('M')}
+              </span>
+            </button>
+            <span className="text-[var(--text-secondary)]">월</span>
+          </div>
           <button
             onClick={handleNextMonth}
             className="p-1 hover:bg-[var(--bg-secondary)] rounded transition-colors"
@@ -85,18 +106,57 @@ export default function DateFilter({ onFilterChange }: DateFilterProps) {
             <ChevronRight className="w-5 h-5" />
           </button>
         </div>
-        {selectedDate && (
-          <button
-            onClick={handleClear}
-            className="ml-2 p-1 hover:bg-[var(--bg-secondary)] rounded transition-colors"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        )}
       </div>
-      <div className="text-xs text-[var(--text-secondary)]">
-        월을 선택하여 해당 월의 일기만 보기
-      </div>
+
+      {/* 연도 선택 드롭다운 */}
+      {showYearPicker && (
+        <div className="absolute top-full left-0 right-0 mt-2 bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg shadow-lg z-50 max-h-64 overflow-y-auto">
+          <div className="p-4">
+            <div className="grid grid-cols-3 gap-2">
+              {years.map((year) => (
+                <button
+                  key={year}
+                  onClick={() => handleYearSelect(year)}
+                  className={`px-3 py-2 rounded text-sm transition-colors ${
+                    selectedYear === year
+                      ? 'bg-[var(--accent-yellow)] text-black font-semibold'
+                      : year === currentYear
+                      ? 'bg-[var(--bg-secondary)] text-[var(--text-primary)] font-semibold'
+                      : 'hover:bg-[var(--bg-secondary)] text-[var(--text-primary)]'
+                  }`}
+                >
+                  {year}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 월 선택 드롭다운 */}
+      {showMonthPicker && (
+        <div className="absolute top-full left-0 right-0 mt-2 bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg shadow-lg z-50">
+          <div className="p-4">
+            <div className="grid grid-cols-3 gap-2">
+              {months.map((month) => (
+                <button
+                  key={month}
+                  onClick={() => handleMonthSelect(month - 1)}
+                  className={`px-3 py-2 rounded text-sm transition-colors ${
+                    selectedMonth === month
+                      ? 'bg-[var(--accent-yellow)] text-black font-semibold'
+                      : month === dayjs().month() + 1 && currentMonth.year() === dayjs().year()
+                      ? 'bg-[var(--bg-secondary)] text-[var(--text-primary)] font-semibold'
+                      : 'hover:bg-[var(--bg-secondary)] text-[var(--text-primary)]'
+                  }`}
+                >
+                  {monthNames[month - 1]}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

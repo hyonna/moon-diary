@@ -12,7 +12,7 @@ export default function MoodSelector({ selectedMood, onSelect }: MoodSelectorPro
   const moods: MoonPhase[] = ['new', 'waxing', 'full', 'waning'];
 
   return (
-    <div className="grid grid-cols-2 gap-3">
+    <div className="flex gap-2">
       {moods.map((mood) => {
         const mapping = MOOD_MAPPINGS[mood];
         const isSelected = selectedMood === mood;
@@ -22,17 +22,17 @@ export default function MoodSelector({ selectedMood, onSelect }: MoodSelectorPro
             key={mood}
             onClick={() => onSelect(mood)}
             className={`
-              p-5 rounded-lg border transition-all text-left
+              flex-1 p-3 rounded-lg border transition-all text-center
               ${isSelected 
-                ? 'border-[var(--text-primary)] bg-[var(--bg-secondary)]' 
+                ? 'border-[var(--accent-yellow)] bg-[var(--bg-secondary)]' 
                 : 'border-[var(--border-color)] bg-[var(--bg-primary)] hover:border-[var(--text-secondary)]'
               }
             `}
             whileHover={{ scale: 1.01 }}
             whileTap={{ scale: 0.99 }}
           >
-            <div className="text-4xl mb-2">{mapping.emoji}</div>
-            <div className="font-semibold text-base mb-0.5">{mapping.name}</div>
+            <div className="text-3xl mb-1">{mapping.emoji}</div>
+            <div className="font-semibold text-sm mb-0.5">{mapping.name}</div>
             <div className="text-xs text-[var(--text-secondary)]">{mapping.description}</div>
           </motion.button>
         );

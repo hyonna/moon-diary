@@ -1,7 +1,7 @@
 'use client';
 
 import { usePathname, useRouter } from 'next/navigation';
-import { Home, Plus, User } from 'lucide-react';
+import { Home, User } from 'lucide-react';
 
 export default function BottomNavigation() {
   const pathname = usePathname();
@@ -10,7 +10,7 @@ export default function BottomNavigation() {
   const isActive = (path: string) => pathname === path;
 
   return (
-    <nav className="fixed bottom-0 left-1/2 transform -translate-x-1/2 w-full max-w-[520px] bg-[var(--bg-primary)] border-t border-[var(--border-color)] z-50 safe-area-inset-bottom">
+    <nav className="fixed bottom-0 left-1/2 transform -translate-x-1/2 w-full max-w-[520px] bg-[var(--bg-primary)]/80 backdrop-blur-xl border-t border-[var(--border-color)] z-50 safe-area-inset-bottom">
       <div className="flex items-center justify-around px-4 py-2">
         <button
           onClick={() => router.push('/')}
@@ -26,9 +26,9 @@ export default function BottomNavigation() {
 
         <button
           onClick={() => router.push('/write')}
-          className="flex items-center justify-center w-12 h-12 rounded-full bg-[var(--text-primary)] text-[var(--bg-primary)] hover:opacity-80 transition-opacity"
+          className="flex items-center justify-center w-12 h-12 rounded-full bg-[var(--bg-secondary)] border-2 border-[var(--accent-yellow)] hover:border-[var(--accent-yellow-dark)] transition-colors"
         >
-          <Plus className="w-6 h-6" />
+          <span className="text-2xl">🌙</span>
         </button>
 
         <button

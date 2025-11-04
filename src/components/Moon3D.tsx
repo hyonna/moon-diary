@@ -21,7 +21,7 @@ function calculateMoonPhase(moodCounts: Record<MoonPhase, number>, total: number
     new: 0, // 신월
     waxing: 0.25, // 상현달
     full: 0.5, // 보름달
-    waning: 0.75, // 하현달
+    waning: 0.75 // 하현달
   }
 
   let weightedPhase = 0
@@ -40,7 +40,7 @@ function MoonMesh({ phase }: { phase: number }) {
   // 달 텍스처 로드 (원본 코드 참고)
   const textureURL = 'https://s3-us-west-2.amazonaws.com/s.cdpn.io/17271/lroc_color_poles_1k.jpg'
   const displacementURL = 'https://s3-us-west-2.amazonaws.com/s.cdpn.io/17271/ldem_3_8bit.jpg'
-  
+
   const [texture, displacementMap] = useTexture([textureURL, displacementURL])
 
   useFrame((state, delta) => {
@@ -90,16 +90,12 @@ function MoonMesh({ phase }: { phase: number }) {
           reflectivity={0}
         />
       </mesh>
-      
+
       {/* 달의 위상 표현을 위한 어두운 반구 (위상에 따라 크기 조절) */}
       {phaseScale > 0 && phaseScale < 1 && (
         <mesh>
           <sphereGeometry args={[1.02, 60, 60]} />
-          <meshStandardMaterial
-            color="#000000"
-            opacity={0.95}
-            transparent
-          />
+          <meshStandardMaterial color="#000000" opacity={0.95} transparent />
         </mesh>
       )}
     </group>
@@ -141,6 +137,31 @@ export default function Moon3D({ moodCounts, totalEntries }: Moon3DProps) {
 
   const dominantMoodName = dominantMood ? MOOD_MAPPINGS[dominantMood].name : ''
 
+  // 달 위상에 따른 조명 위치 계산
+  // phase: 0 (신월) -> 0.5 (보름달) -> 1 (신월)
+  // 신월(0): 태양이 달 뒤에 있음 → 조명이 뒤에서 (z축 음수)
+  // 상현달(0.25): 오른쪽 절반이 밝음 → 조명이 오른쪽에서 (x축 양수)
+  // 보름달(0.5): 전체가 밝음 → 조명이 앞에서 (z축 양수)
+  // 하현달(0.75): 왼쪽 절반이 밝음 → 조명이 왼쪽에서 (x축 음수)
+  const lightPosition = useMemo(() => {
+    // 위상에 따라 태양의 위치를 계산
+    // 위상을 0~2π 각도로 변환 (신월: -90도, 상현달: 0도, 보름달: 90도, 하현달: 180도)
+    const angle = moonPhase * Math.PI * 2 - Math.PI / 2
+    const distance = 100
+    const x = Math.cos(angle) * distance
+    const z = Math.sin(angle) * distance
+    const y = 10 // 약간 위쪽
+    return [x, y, z] as [number, number, number]
+  }, [moonPhase])
+
+  // 조명 강도도 위상에 따라 조정
+  // 신월(0, 1): 어둡게, 보름달(0.5): 밝게
+  const lightIntensity = useMemo(() => {
+    // 위상이 0.5 (보름달)에 가까울수록 밝게
+    const distanceFromFull = Math.abs(moonPhase - 0.5) * 2 // 0 ~ 1
+    return 0.3 + (1 - distanceFromFull) * 0.7 // 0.3 ~ 1.0
+  }, [moonPhase])
+
   // Hemisphere Light 색상 (원본 코드 참고)
   const hemiLightColor = useMemo(() => {
     const color = new THREE.Color()
@@ -156,19 +177,16 @@ export default function Moon3D({ moodCounts, totalEntries }: Moon3DProps) {
 
   return (
     <div className="w-full h-64 bg-[var(--bg-secondary)] rounded-lg overflow-hidden">
-      <Canvas
-        camera={{ position: [0, 0, 5], fov: 50 }}
-        gl={{ antialias: true, alpha: true }}
-      >
+      <Canvas camera={{ position: [0, 0, 5], fov: 50 }} gl={{ antialias: true, alpha: true }}>
         {/* 우주 배경 */}
         <SpaceBackground />
 
-        {/* 조명 - 원본 코드 참고 */}
-        <directionalLight color={0xffffff} intensity={1} position={[-100, 10, 50]} />
+        {/* 조명 - 위상에 따라 위치와 강도 조정 */}
+        <directionalLight color={0xffffff} intensity={lightIntensity} position={lightPosition} />
         <hemisphereLight
           color={hemiLightColor}
           groundColor={hemiGroundColor}
-          intensity={0.1}
+          intensity={0.1 + (lightIntensity - 0.3) * 0.2}
           position={[0, 0, 0]}
         />
 
@@ -187,9 +205,7 @@ export default function Moon3D({ moodCounts, totalEntries }: Moon3DProps) {
         />
       </Canvas>
       <div className="text-center mt-2">
-        <p className="text-xs text-[var(--text-secondary)]">
-          평균 감정: {dominantMoodName || '없음'}
-        </p>
+        <p className="text-xs text-[var(--text-secondary)]">평균 감정: {dominantMoodName || '없음'}</p>
       </div>
     </div>
   )

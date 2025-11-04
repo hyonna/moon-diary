@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS diary_entries (
   date DATE NOT NULL UNIQUE,
   mood VARCHAR(20) NOT NULL CHECK (mood IN ('new', 'waxing', 'full', 'waning')),
   note TEXT,
+  media_urls TEXT[], -- 이미지/동영상 URL 배열
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -47,3 +48,7 @@ CREATE TRIGGER update_diary_entries_updated_at
   FOR EACH ROW
   EXECUTE FUNCTION update_updated_at_column();
 
+-- 기존 테이블에 media_urls 컬럼 추가 (마이그레이션용)
+-- 이미 테이블이 생성되어 있다면 이 SQL만 실행하세요
+ALTER TABLE diary_entries 
+  ADD COLUMN IF NOT EXISTS media_urls TEXT[];

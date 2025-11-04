@@ -38,10 +38,10 @@ export default function StatisticsChart() {
   }));
 
   const COLORS = {
-    new: '#6366f1',
-    waxing: '#8b5cf6',
-    full: '#ec4899',
-    waning: '#06b6d4',
+    new: '#fbbf24', // 옐로우 계열 - 연한 노란색
+    waxing: '#fcd34d', // 옐로우 계열 - 중간 노란색
+    full: '#ffd700', // 옐로우 계열 - 골드
+    waning: '#facc15', // 옐로우 계열 - 진한 노란색
   };
 
   function getColorForPhase(phase: MoonPhase): string {

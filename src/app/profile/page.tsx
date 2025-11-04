@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import dynamic from 'next/dynamic';
 import dayjs from 'dayjs';
 import { DiaryEntry, MoonPhase, MOOD_MAPPINGS } from '@/types/diary';
 import { diaryService } from '@/lib/supabase';
@@ -9,7 +10,15 @@ import { analyzeStats } from '@/lib/analyzeStats';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import BottomNavigation from '@/components/BottomNavigation';
 import CalendarView from '@/components/CalendarView';
-import Moon3D from '@/components/Moon3D';
+
+const Moon3D = dynamic(() => import('@/components/Moon3D'), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-64 bg-[var(--bg-secondary)] rounded-lg flex items-center justify-center">
+      <p className="text-sm text-[var(--text-secondary)]">로딩 중...</p>
+    </div>
+  ),
+});
 
 export default function ProfilePage() {
   const now = dayjs();
@@ -30,10 +39,10 @@ export default function ProfilePage() {
 
   // COLORS를 컴포넌트 상단에 정의
   const COLORS = {
-    new: '#6366f1',
-    waxing: '#8b5cf6',
-    full: '#ec4899',
-    waning: '#06b6d4',
+    new: '#fbbf24', // 옐로우 계열 - 연한 노란색
+    waxing: '#fcd34d', // 옐로우 계열 - 중간 노란색
+    full: '#ffd700', // 옐로우 계열 - 골드
+    waning: '#facc15', // 옐로우 계열 - 진한 노란색
   };
 
   function getColorForPhase(phase: MoonPhase): string {
@@ -116,9 +125,9 @@ export default function ProfilePage() {
 
   return (
     <>
-      <header className="sticky top-0 z-40 bg-[var(--bg-primary)] border-b border-[var(--border-color)] backdrop-blur-sm bg-opacity-80">
+      <header className="sticky top-0 z-40 bg-[var(--bg-primary)]/80 backdrop-blur-xl border-b border-[var(--border-color)]">
           <div className="flex items-center justify-between px-4 py-3">
-            <h1 className="text-xl font-bold text-[var(--text-primary)]">내 정보</h1>
+            <h1 className="text-xl font-bold text-[var(--text-primary)]">🌙 Moon Diary</h1>
           </div>
       </header>
 
@@ -223,7 +232,7 @@ export default function ProfilePage() {
                     color: 'var(--text-primary)',
                   }}
                 />
-                <Bar dataKey="count" fill="#8b5cf6" radius={[8, 8, 0, 0]} />
+                <Bar dataKey="count" fill="#ffd700" radius={[8, 8, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
