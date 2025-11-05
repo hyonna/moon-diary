@@ -149,14 +149,14 @@ export default function DiaryFeed({ dateFilter }: DiaryFeedProps) {
 
   if (entries.length === 0 && !loading) {
     return (
-      <div className="py-12 text-center">
+      <div className="min-h-[50vh] flex items-center justify-center">
         <p className="text-[var(--text-secondary)] text-sm">아직 기록된 일기가 없습니다.</p>
       </div>
     )
   }
 
   return (
-    <div className="pb-20">
+    <div>
       {entries.map((entry, index) => {
         const isLast = index === entries.length - 1
         const mapping = MOOD_MAPPINGS[entry.mood]
@@ -165,7 +165,9 @@ export default function DiaryFeed({ dateFilter }: DiaryFeedProps) {
           <div
             key={entry.id || `entry-${entry.date}-${index}`}
             ref={isLast && hasMore ? lastEntryRef : null}
-            className="border-b border-[var(--border-color)] pb-4 mb-4 -mx-4 px-4 py-3"
+            className={`pb-4 -mx-4 px-4 py-3 ${
+              isLast ? 'mb-0' : 'mb-4 border-b border-[var(--border-color)]'
+            }`}
           >
             <div className="flex items-start gap-3">
               {/* 달 이모지 - 왼쪽 */}

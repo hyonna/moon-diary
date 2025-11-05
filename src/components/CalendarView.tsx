@@ -11,7 +11,7 @@ interface CalendarViewProps {
 }
 
 export default function CalendarView({ year, month }: CalendarViewProps) {
-  const [entries, setEntries] = useState<Record<string, DiaryEntry>>({});
+  const [entries, setEntries] = useState<Record<string, DiaryEntry[]>>({});
 
   useEffect(() => {
     // 해당 월의 시작일과 종료일 계산
@@ -21,9 +21,12 @@ export default function CalendarView({ year, month }: CalendarViewProps) {
     const endDate = lastDay.format('YYYY-MM-DD');
 
     diaryService.getEntriesByDateRange(startDate, endDate).then((data) => {
-      const entriesMap: Record<string, DiaryEntry> = {};
+      const entriesMap: Record<string, DiaryEntry[]> = {};
       data.forEach((entry) => {
-        entriesMap[entry.date] = entry;
+        if (!entriesMap[entry.date]) {
+          entriesMap[entry.date] = [];
+        }
+        entriesMap[entry.date].push(entry);
       });
       setEntries(entriesMap);
     });
@@ -49,9 +52,26 @@ export default function CalendarView({ year, month }: CalendarViewProps) {
   };
 
   const getMoodEmoji = (date: string): string | null => {
-    const entry = entries[date];
-    if (!entry) return null;
-    return MOOD_MAPPINGS[entry.mood].emoji;
+    const dateEntries = entries[date];
+    if (!dateEntries || dateEntries.length === 0) return null;
+    // 가장 최근 일기의 감정을 표시
+    return MOOD_MAPPINGS[dateEntries[0].mood].emoji;
+  };
+
+  const getEntryCount = (date: string): number => {
+    const dateEntries = entries[date];
+    return dateEntries ? dateEntries.length : 0;
+  };
+
+  const getTooltipText = (date: string): string => {
+    const count = getEntryCount(date);
+    const dateLabel = dateUtils.parseDate(date).format('M월 D일');
+    
+    if (count === 0) {
+      return `${dateLabel}\n일기 없음`;
+    }
+    
+    return `${dateLabel}\n일기 ${count}개`;
   };
 
   return (
@@ -72,6 +92,7 @@ export default function CalendarView({ year, month }: CalendarViewProps) {
           const dateStr = getDateString(day);
           const emoji = getMoodEmoji(dateStr);
           const isToday = dateStr === dateUtils.getTodayString();
+          const tooltipText = getTooltipText(dateStr);
 
           return (
             <div
@@ -84,12 +105,13 @@ export default function CalendarView({ year, month }: CalendarViewProps) {
                 }
                 ${emoji ? 'cursor-pointer' : ''}
               `}
+              title={tooltipText}
             >
               <div className={`text-xs font-medium mb-1 ${isToday ? 'text-[var(--text-primary)]' : 'text-[var(--text-secondary)]'}`}>
                 {day}
               </div>
               {emoji && (
-                <div className="text-xl" title={entries[dateStr]?.note || ''}>
+                <div className="text-xl">
                   {emoji}
                 </div>
               )}

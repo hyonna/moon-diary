@@ -1,6 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import dayjs from 'dayjs';
 import DiaryForm from '@/components/DiaryForm';
 import CalendarView from '@/components/CalendarView';
@@ -8,9 +10,25 @@ import StatisticsChart from '@/components/StatisticsChart';
 import Navigation from '@/components/Navigation';
 
 export default function DiaryPage() {
+  const router = useRouter();
+  const { status } = useSession();
   const now = dayjs();
   const [currentYear, setCurrentYear] = useState(now.year());
   const [currentMonth, setCurrentMonth] = useState(now.month() + 1);
+
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push('/login');
+    }
+  }, [status, router]);
+
+  if (status === 'loading' || status === 'unauthenticated') {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <p className="text-[var(--text-secondary)]">로딩 중...</p>
+      </div>
+    );
+  }
 
   const handlePrevMonth = () => {
     if (currentMonth === 1) {

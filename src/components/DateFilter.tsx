@@ -70,40 +70,40 @@ export default function DateFilter({ onFilterChange }: DateFilterProps) {
   const monthNames = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
 
   return (
-    <div className="relative mb-4">
-      <div className="ig-card p-4 border-2 border-[var(--text-primary)]">
-        <div className="flex items-center justify-between">
+    <div className="relative">
+      <div className="ig-card p-2 border-2 border-[var(--text-primary)] flex items-center min-h-[44px]">
+        <div className="flex items-center justify-between w-full">
           <button
             onClick={handlePrevMonth}
-            className="p-1 hover:bg-[var(--bg-secondary)] rounded transition-colors"
+            className="p-0.5 hover:bg-[var(--bg-secondary)] rounded transition-colors"
           >
-            <ChevronLeft className="w-5 h-5" />
+            <ChevronLeft className="w-4 h-4" />
           </button>
           <div className="flex-1 flex items-center justify-center gap-2">
             <button
               onClick={handleYearClick}
-              className="px-3 py-1 hover:bg-[var(--bg-secondary)] rounded transition-colors"
+              className="px-2 py-0.5 hover:bg-[var(--bg-secondary)] rounded transition-colors"
             >
               <span className="text-sm font-semibold text-[var(--accent-yellow)]">
                 {currentMonth.format('YYYY')}
               </span>
             </button>
-            <span className="text-[var(--text-secondary)]">년</span>
+            <span className="text-[var(--text-secondary)] text-sm">년</span>
             <button
               onClick={handleMonthClick}
-              className="px-3 py-1 hover:bg-[var(--bg-secondary)] rounded transition-colors"
+              className="px-2 py-0.5 hover:bg-[var(--bg-secondary)] rounded transition-colors"
             >
               <span className="text-sm font-semibold text-[var(--accent-yellow)]">
                 {currentMonth.format('M')}
               </span>
             </button>
-            <span className="text-[var(--text-secondary)]">월</span>
+            <span className="text-[var(--text-secondary)] text-sm">월</span>
           </div>
           <button
             onClick={handleNextMonth}
-            className="p-1 hover:bg-[var(--bg-secondary)] rounded transition-colors"
+            className="p-0.5 hover:bg-[var(--bg-secondary)] rounded transition-colors"
           >
-            <ChevronRight className="w-5 h-5" />
+            <ChevronRight className="w-4 h-4" />
           </button>
         </div>
       </div>

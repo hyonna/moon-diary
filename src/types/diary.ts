@@ -41,6 +41,7 @@ export interface DiaryEntry {
   mood: MoonPhase;
   note?: string;
   media_urls?: string[]; // 이미지/동영상 URL 배열
+  user_id?: string; // 사용자 ID
   created_at?: string;
   updated_at?: string;
 }

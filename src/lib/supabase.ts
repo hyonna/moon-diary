@@ -94,10 +94,15 @@ export const deleteFile = async (url: string): Promise<boolean> => {
 export const diaryService = {
   // 특정 날짜의 일기들 가져오기
   async getEntriesByDate(date: string): Promise<DiaryEntry[]> {
+    // 현재 사용자 ID 가져오기
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return []
+
     const { data, error } = await supabase
       .from(DIARY_TABLE)
       .select('*')
       .eq('date', date)
+      .eq('user_id', user.id)
       .order('created_at', { ascending: false })
 
     if (error) {
@@ -110,7 +115,16 @@ export const diaryService = {
 
   // ID로 특정 일기 가져오기
   async getEntryById(id: string): Promise<DiaryEntry | null> {
-    const { data, error } = await supabase.from(DIARY_TABLE).select('*').eq('id', id).single()
+    // 현재 사용자 ID 가져오기
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return null
+
+    const { data, error } = await supabase
+      .from(DIARY_TABLE)
+      .select('*')
+      .eq('id', id)
+      .eq('user_id', user.id)
+      .single()
 
     if (error && error.code !== 'PGRST116') {
       console.error('Error fetching entry by id:', error)
@@ -122,12 +136,23 @@ export const diaryService = {
 
   // 새 일기 저장
   async insertEntry(entry: DiaryEntry): Promise<DiaryEntry | null> {
-    const { data, error } = await supabase.from(DIARY_TABLE).insert(entry).select().single()
+    // 현재 사용자 ID 가져오기
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      throw new Error('로그인이 필요합니다.')
+    }
+
+    const entryWithUserId = {
+      ...entry,
+      user_id: user.id
+    }
+
+    const { data, error } = await supabase.from(DIARY_TABLE).insert(entryWithUserId).select().single()
 
     if (error) {
       console.error('Error inserting entry:', error)
       console.error('Error details:', JSON.stringify(error, null, 2))
-      console.error('Entry data:', JSON.stringify(entry, null, 2))
+      console.error('Entry data:', JSON.stringify(entryWithUserId, null, 2))
       
       // UNIQUE 제약조건 오류 (같은 날짜에 이미 일기가 있는 경우)
       if (error.code === '23505' || error.message?.includes('duplicate key') || error.message?.includes('unique constraint')) {
@@ -147,7 +172,19 @@ export const diaryService = {
 
   // 일기 수정 (id 기반)
   async updateEntry(id: string, entry: Partial<DiaryEntry>): Promise<DiaryEntry | null> {
-    const { data, error } = await supabase.from(DIARY_TABLE).update(entry).eq('id', id).select().single()
+    // 현재 사용자 ID 가져오기
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      throw new Error('로그인이 필요합니다.')
+    }
+
+    const { data, error } = await supabase
+      .from(DIARY_TABLE)
+      .update(entry)
+      .eq('id', id)
+      .eq('user_id', user.id)
+      .select()
+      .single()
 
     if (error) {
       console.error('Error updating entry:', error)
@@ -159,9 +196,14 @@ export const diaryService = {
 
   // 기간 내 모든 일기 가져오기
   async getEntriesByDateRange(startDate: string, endDate: string): Promise<DiaryEntry[]> {
+    // 현재 사용자 ID 가져오기
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return []
+
     const { data, error } = await supabase
       .from(DIARY_TABLE)
       .select('*')
+      .eq('user_id', user.id)
       .gte('date', startDate)
       .lte('date', endDate)
       .order('date', { ascending: true })
@@ -176,7 +218,14 @@ export const diaryService = {
 
   // 전체 일기 가져오기 (클라이언트에서 날짜 기준 정렬)
   async getAllEntries(): Promise<DiaryEntry[]> {
-    const { data, error } = await supabase.from(DIARY_TABLE).select('*')
+    // 현재 사용자 ID 가져오기
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return []
+
+    const { data, error } = await supabase
+      .from(DIARY_TABLE)
+      .select('*')
+      .eq('user_id', user.id)
 
     if (error) {
       console.error('Error fetching all entries:', error)
@@ -188,6 +237,10 @@ export const diaryService = {
 
   // 일기 삭제
   async deleteEntry(id: string): Promise<boolean> {
+    // 현재 사용자 ID 가져오기
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return false
+
     // 먼저 일기 정보를 가져와서 미디어 파일 삭제
     const entry = await this.getEntryById(id)
     
@@ -199,7 +252,11 @@ export const diaryService = {
     }
 
     // 일기 삭제
-    const { error } = await supabase.from(DIARY_TABLE).delete().eq('id', id)
+    const { error } = await supabase
+      .from(DIARY_TABLE)
+      .delete()
+      .eq('id', id)
+      .eq('user_id', user.id)
 
     if (error) {
       console.error('Error deleting entry:', error)
