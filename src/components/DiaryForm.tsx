@@ -1,11 +1,13 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useSession } from 'next-auth/react'
 import { MoonPhase, DiaryEntry } from '@/types/diary'
 import { diaryService } from '@/lib/supabase'
 import MoodSelector from './MoodSelector'
 
 export default function DiaryForm() {
+  const { data: session } = useSession()
   const today = new Date().toISOString().split('T')[0]
   const [selectedMood, setSelectedMood] = useState<MoonPhase | null>(null)
   const [note, setNote] = useState('')
@@ -15,15 +17,18 @@ export default function DiaryForm() {
 
   useEffect(() => {
     // 오늘의 일기 불러오기
-    diaryService.getTodayEntry(today).then((entry) => {
-      if (entry) {
-        setExistingEntry(entry)
-        setSelectedMood(entry.mood)
-        setNote(entry.note || '')
-        setIsSaved(true)
-      }
-    })
-  }, [today])
+    if (session?.user?.id) {
+      diaryService.getEntriesByDate(today, session.user.id).then((entries) => {
+        if (entries && entries.length > 0) {
+          const entry = entries[0] // 가장 최근 일기
+          setExistingEntry(entry)
+          setSelectedMood(entry.mood)
+          setNote(entry.note || '')
+          setIsSaved(true)
+        }
+      })
+    }
+  }, [today, session])
 
   const handleSave = async () => {
     if (!selectedMood) {
@@ -31,25 +36,50 @@ export default function DiaryForm() {
       return
     }
 
+    if (!session?.user?.id) {
+      alert('로그인이 필요합니다.')
+      return
+    }
+
     setIsLoading(true)
 
-    const entry: DiaryEntry = {
-      date: today,
-      mood: selectedMood,
-      note: note.trim() || undefined
+    try {
+      const entry: DiaryEntry = {
+        date: today,
+        mood: selectedMood,
+        note: note.trim() || undefined
+      }
+
+      let result: DiaryEntry | null = null
+
+      if (existingEntry?.id) {
+        // 기존 일기가 있으면 업데이트
+        result = await diaryService.updateEntry(existingEntry.id, {
+          mood: selectedMood,
+          note: note.trim() || undefined
+        }, session.user.id)
+      } else {
+        // 새 일기 생성
+        result = await diaryService.insertEntry(entry, session.user.id)
+      }
+
+      if (result) {
+        setIsSaved(true)
+        setExistingEntry(result)
+        alert('저장되었습니다!')
+      } else {
+        alert('저장 중 오류가 발생했습니다.')
+      }
+    } catch (error) {
+      console.error('Error saving entry:', error)
+      if (error instanceof Error) {
+        alert(error.message)
+      } else {
+        alert('저장 중 오류가 발생했습니다.')
+      }
+    } finally {
+      setIsLoading(false)
     }
-
-    const result = await diaryService.upsertEntry(entry)
-
-    if (result) {
-      setIsSaved(true)
-      setExistingEntry(result)
-      alert('저장되었습니다!')
-    } else {
-      alert('저장 중 오류가 발생했습니다.')
-    }
-
-    setIsLoading(false)
   }
 
   return (
