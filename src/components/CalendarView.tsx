@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useSession } from 'next-auth/react';
 import { DiaryEntry, MoonPhase, MOOD_MAPPINGS } from '@/types/diary';
 import { diaryService } from '@/lib/supabase';
 import { dateUtils } from '@/lib/dateUtils';
@@ -8,19 +9,22 @@ import { dateUtils } from '@/lib/dateUtils';
 interface CalendarViewProps {
   year: number;
   month: number;
+  averageMoodEmoji?: string | null;
 }
 
-export default function CalendarView({ year, month }: CalendarViewProps) {
+export default function CalendarView({ year, month, averageMoodEmoji }: CalendarViewProps) {
+  const { data: session } = useSession();
   const [entries, setEntries] = useState<Record<string, DiaryEntry[]>>({});
 
   useEffect(() => {
+    if (!session?.user?.id) return;
     // 해당 월의 시작일과 종료일 계산
     const firstDay = dateUtils.getFirstDayOfMonth(year, month);
     const lastDay = dateUtils.getLastDayOfMonth(year, month);
     const startDate = firstDay.format('YYYY-MM-DD');
     const endDate = lastDay.format('YYYY-MM-DD');
 
-    diaryService.getEntriesByDateRange(startDate, endDate).then((data) => {
+    diaryService.getEntriesByDateRange(startDate, endDate, session.user.id).then((data) => {
       const entriesMap: Record<string, DiaryEntry[]> = {};
       data.forEach((entry) => {
         if (!entriesMap[entry.date]) {
@@ -30,7 +34,7 @@ export default function CalendarView({ year, month }: CalendarViewProps) {
       });
       setEntries(entriesMap);
     });
-  }, [year, month]);
+  }, [year, month, session]);
 
   // 달력 생성
   const firstDayOfWeek = dateUtils.getFirstDayOfWeek(year, month);
@@ -54,8 +58,8 @@ export default function CalendarView({ year, month }: CalendarViewProps) {
   const getMoodEmoji = (date: string): string | null => {
     const dateEntries = entries[date];
     if (!dateEntries || dateEntries.length === 0) return null;
-    // 가장 최근 일기의 감정을 표시
-    return MOOD_MAPPINGS[dateEntries[0].mood].emoji;
+    // 평균 감정 이모지 사용 (전달된 경우), 없으면 해당 날짜의 감정 이모지
+    return averageMoodEmoji || MOOD_MAPPINGS[dateEntries[0].mood].emoji;
   };
 
   const getEntryCount = (date: string): number => {

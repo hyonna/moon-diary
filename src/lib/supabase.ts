@@ -93,16 +93,20 @@ export const deleteFile = async (url: string): Promise<boolean> => {
 // 일기 엔트리 관련 함수들
 export const diaryService = {
   // 특정 날짜의 일기들 가져오기
-  async getEntriesByDate(date: string): Promise<DiaryEntry[]> {
-    // 현재 사용자 ID 가져오기
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return []
+  async getEntriesByDate(date: string, userId?: string): Promise<DiaryEntry[]> {
+    // 사용자 ID 가져오기 (파라미터로 전달되거나 Supabase 인증에서 가져오기)
+    let finalUserId = userId
+    if (!finalUserId) {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return []
+      finalUserId = user.id
+    }
 
     const { data, error } = await supabase
       .from(DIARY_TABLE)
       .select('*')
       .eq('date', date)
-      .eq('user_id', user.id)
+      .eq('user_id', finalUserId)
       .order('created_at', { ascending: false })
 
     if (error) {
@@ -114,16 +118,20 @@ export const diaryService = {
   },
 
   // ID로 특정 일기 가져오기
-  async getEntryById(id: string): Promise<DiaryEntry | null> {
-    // 현재 사용자 ID 가져오기
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return null
+  async getEntryById(id: string, userId?: string): Promise<DiaryEntry | null> {
+    // 사용자 ID 가져오기 (파라미터로 전달되거나 Supabase 인증에서 가져오기)
+    let finalUserId = userId
+    if (!finalUserId) {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return null
+      finalUserId = user.id
+    }
 
     const { data, error } = await supabase
       .from(DIARY_TABLE)
       .select('*')
       .eq('id', id)
-      .eq('user_id', user.id)
+      .eq('user_id', finalUserId)
       .single()
 
     if (error && error.code !== 'PGRST116') {
@@ -135,16 +143,20 @@ export const diaryService = {
   },
 
   // 새 일기 저장
-  async insertEntry(entry: DiaryEntry): Promise<DiaryEntry | null> {
-    // 현재 사용자 ID 가져오기
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
-      throw new Error('로그인이 필요합니다.')
+  async insertEntry(entry: DiaryEntry, userId?: string): Promise<DiaryEntry | null> {
+    // 사용자 ID 가져오기 (파라미터로 전달되거나 Supabase 인증에서 가져오기)
+    let finalUserId = userId
+    if (!finalUserId) {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        throw new Error('로그인이 필요합니다.')
+      }
+      finalUserId = user.id
     }
 
     const entryWithUserId = {
       ...entry,
-      user_id: user.id
+      user_id: finalUserId
     }
 
     const { data, error } = await supabase.from(DIARY_TABLE).insert(entryWithUserId).select().single()
@@ -171,18 +183,22 @@ export const diaryService = {
   },
 
   // 일기 수정 (id 기반)
-  async updateEntry(id: string, entry: Partial<DiaryEntry>): Promise<DiaryEntry | null> {
-    // 현재 사용자 ID 가져오기
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
-      throw new Error('로그인이 필요합니다.')
+  async updateEntry(id: string, entry: Partial<DiaryEntry>, userId?: string): Promise<DiaryEntry | null> {
+    // 사용자 ID 가져오기 (파라미터로 전달되거나 Supabase 인증에서 가져오기)
+    let finalUserId = userId
+    if (!finalUserId) {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        throw new Error('로그인이 필요합니다.')
+      }
+      finalUserId = user.id
     }
 
     const { data, error } = await supabase
       .from(DIARY_TABLE)
       .update(entry)
       .eq('id', id)
-      .eq('user_id', user.id)
+      .eq('user_id', finalUserId)
       .select()
       .single()
 
@@ -195,15 +211,19 @@ export const diaryService = {
   },
 
   // 기간 내 모든 일기 가져오기
-  async getEntriesByDateRange(startDate: string, endDate: string): Promise<DiaryEntry[]> {
-    // 현재 사용자 ID 가져오기
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return []
+  async getEntriesByDateRange(startDate: string, endDate: string, userId?: string): Promise<DiaryEntry[]> {
+    // 사용자 ID 가져오기 (파라미터로 전달되거나 Supabase 인증에서 가져오기)
+    let finalUserId = userId
+    if (!finalUserId) {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return []
+      finalUserId = user.id
+    }
 
     const { data, error } = await supabase
       .from(DIARY_TABLE)
       .select('*')
-      .eq('user_id', user.id)
+      .eq('user_id', finalUserId)
       .gte('date', startDate)
       .lte('date', endDate)
       .order('date', { ascending: true })
@@ -217,15 +237,19 @@ export const diaryService = {
   },
 
   // 전체 일기 가져오기 (클라이언트에서 날짜 기준 정렬)
-  async getAllEntries(): Promise<DiaryEntry[]> {
-    // 현재 사용자 ID 가져오기
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return []
+  async getAllEntries(userId?: string): Promise<DiaryEntry[]> {
+    // 사용자 ID 가져오기 (파라미터로 전달되거나 Supabase 인증에서 가져오기)
+    let finalUserId = userId
+    if (!finalUserId) {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return []
+      finalUserId = user.id
+    }
 
     const { data, error } = await supabase
       .from(DIARY_TABLE)
       .select('*')
-      .eq('user_id', user.id)
+      .eq('user_id', finalUserId)
 
     if (error) {
       console.error('Error fetching all entries:', error)
@@ -236,13 +260,17 @@ export const diaryService = {
   },
 
   // 일기 삭제
-  async deleteEntry(id: string): Promise<boolean> {
-    // 현재 사용자 ID 가져오기
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return false
+  async deleteEntry(id: string, userId?: string): Promise<boolean> {
+    // 사용자 ID 가져오기 (파라미터로 전달되거나 Supabase 인증에서 가져오기)
+    let finalUserId = userId
+    if (!finalUserId) {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return false
+      finalUserId = user.id
+    }
 
     // 먼저 일기 정보를 가져와서 미디어 파일 삭제
-    const entry = await this.getEntryById(id)
+    const entry = await this.getEntryById(id, finalUserId)
     
     if (entry && entry.media_urls && entry.media_urls.length > 0) {
       // 미디어 파일들 삭제
@@ -256,7 +284,7 @@ export const diaryService = {
       .from(DIARY_TABLE)
       .delete()
       .eq('id', id)
-      .eq('user_id', user.id)
+      .eq('user_id', finalUserId)
 
     if (error) {
       console.error('Error deleting entry:', error)

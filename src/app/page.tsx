@@ -25,10 +25,12 @@ export default function HomePage() {
 
   // 작성된 일기 유무 확인
   useEffect(() => {
-    diaryService.getAllEntries().then((entries) => {
-      setHasEntries(entries.length > 0)
-    })
-  }, [])
+    if (session?.user?.id) {
+      diaryService.getAllEntries(session.user.id).then((entries) => {
+        setHasEntries(entries.length > 0)
+      })
+    }
+  }, [session])
 
   // 로그인 중이거나 로그인되지 않은 경우 로딩 표시
   if (status === 'loading' || status === 'unauthenticated') {

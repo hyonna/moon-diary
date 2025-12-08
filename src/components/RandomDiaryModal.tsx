@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useSession } from 'next-auth/react'
 import { X } from 'lucide-react'
 import { DiaryEntry, MOOD_MAPPINGS } from '@/types/diary'
 import { diaryService } from '@/lib/supabase'
@@ -13,6 +14,7 @@ interface RandomDiaryModalProps {
 }
 
 export default function RandomDiaryModal({ isOpen, onClose }: RandomDiaryModalProps) {
+  const { data: session } = useSession()
   const [randomEntry, setRandomEntry] = useState<DiaryEntry | null>(null)
   const [loading, setLoading] = useState(false)
 
@@ -40,9 +42,10 @@ export default function RandomDiaryModal({ isOpen, onClose }: RandomDiaryModalPr
   }, [isOpen])
 
   const loadRandomEntry = async () => {
+    if (!session?.user?.id) return
     setLoading(true)
     try {
-      const allEntries = await diaryService.getAllEntries()
+      const allEntries = await diaryService.getAllEntries(session.user.id)
       const today = dateUtils.getTodayString()
 
       // 오늘 날짜를 제외한 과거 일기들만 필터링

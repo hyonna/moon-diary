@@ -1,7 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import dynamic from 'next/dynamic'
+import { useEffect, useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import dayjs from 'dayjs'
 import { ChevronLeft, ChevronRight, LogOut, Edit2, Check, X } from 'lucide-react'
@@ -16,15 +15,6 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/contexts/ToastContext'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
-
-const Moon3D = dynamic(() => import('@/components/Moon3D'), {
-  ssr: false,
-  loading: () => (
-    <div className="w-full h-64 bg-[var(--bg-secondary)] rounded-lg flex items-center justify-center">
-      <p className="text-sm text-[var(--text-secondary)]">로딩 중...</p>
-    </div>
-  )
-})
 
 type PeriodType = 'month' | 'year' | 'all'
 
@@ -128,10 +118,12 @@ export default function ProfilePage() {
 
   // 모든 엔트리 로드
   useEffect(() => {
-    diaryService.getAllEntries().then((entries) => {
-      setAllEntries(entries)
-    })
-  }, [])
+    if (user?.id) {
+      diaryService.getAllEntries(user.id).then((entries) => {
+        setAllEntries(entries)
+      })
+    }
+  }, [user])
 
   // 기간에 따른 필터링
   useEffect(() => {
@@ -284,6 +276,14 @@ export default function ProfilePage() {
     emoji: mapping.emoji,
     fill: getColorForPhase(phase as MoonPhase)
   }))
+
+  // 가장 많이 기록된 감정 (평균 감정)
+  const dominantMood = useMemo(() => {
+    const maxCount = Math.max(...Object.values(moodCounts))
+    return Object.entries(moodCounts).find(([, count]) => count === maxCount)?.[0] as MoonPhase | undefined
+  }, [moodCounts])
+
+  const dominantMoodInfo = dominantMood ? MOOD_MAPPINGS[dominantMood] : null
 
   const handlePrevPeriod = () => {
     if (periodType === 'month') {
@@ -637,9 +637,14 @@ export default function ProfilePage() {
         <div className="ig-card p-6 mb-4">
           <h2 className="text-lg font-semibold mb-4 text-[var(--text-primary)]">{getPeriodLabel()} 통계</h2>
 
-          {/* 3D 달 애니메이션 */}
+          {/* 평균 달 이모지 */}
           <div className="mb-4">
-            <Moon3D moodCounts={moodCounts} totalEntries={totalEntries} />
+            <div className="w-full space-background rounded-lg p-8 flex flex-col items-center justify-center relative" style={{ minHeight: '256px' }}>
+              <div className="text-8xl mb-4 relative z-10 select-none">{dominantMoodInfo?.emoji || '🌙'}</div>
+              <p className="text-sm text-white/80 relative z-10">
+                평균 감정: {dominantMoodInfo?.name || '없음'}
+              </p>
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4 mb-4">
@@ -793,7 +798,7 @@ export default function ProfilePage() {
                 </button>
               </div>
             </div>
-            <CalendarView year={selectedYear} month={selectedMonth} />
+            <CalendarView year={selectedYear} month={selectedMonth} averageMoodEmoji={dominantMoodInfo?.emoji} />
           </div>
         )}
 

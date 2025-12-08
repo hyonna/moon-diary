@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
+import { useSession } from 'next-auth/react'
 import { MoreVertical, Edit, Trash2 } from 'lucide-react'
 import { DiaryEntry, MOOD_MAPPINGS } from '@/types/diary'
 import { diaryService } from '@/lib/supabase'
@@ -13,6 +14,7 @@ interface DiaryFeedProps {
 
 export default function DiaryFeed({ dateFilter }: DiaryFeedProps) {
   const router = useRouter()
+  const { data: session } = useSession()
   const [entries, setEntries] = useState<DiaryEntry[]>([])
   const [loading, setLoading] = useState(false)
   const [hasMore, setHasMore] = useState(true)
@@ -23,11 +25,11 @@ export default function DiaryFeed({ dateFilter }: DiaryFeedProps) {
 
   const loadEntries = useCallback(
     async (page: number, filter?: string | null) => {
-      if (loading) return
+      if (loading || !session?.user?.id) return
       setLoading(true)
 
       try {
-        const allEntries = await diaryService.getAllEntries()
+        const allEntries = await diaryService.getAllEntries(session.user.id)
 
         // 날짜 필터 적용 (월별 필터링)
         let filteredEntries = allEntries
@@ -74,7 +76,7 @@ export default function DiaryFeed({ dateFilter }: DiaryFeedProps) {
         setLoading(false)
       }
     },
-    [loading]
+    [loading, session]
   )
 
   useEffect(() => {
@@ -117,8 +119,13 @@ export default function DiaryFeed({ dateFilter }: DiaryFeedProps) {
       return
     }
 
+    if (!session?.user?.id) {
+      alert('로그인이 필요합니다.')
+      return
+    }
+
     try {
-      const success = await diaryService.deleteEntry(entryId)
+      const success = await diaryService.deleteEntry(entryId, session.user.id)
       if (success) {
         // 목록 새로고침
         pageRef.current = 0

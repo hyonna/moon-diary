@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { useSession } from 'next-auth/react'
 import { ArrowLeft, X, Upload, Image as ImageIcon, ChevronLeft, ChevronRight } from 'lucide-react'
 import { MoonPhase, DiaryEntry } from '@/types/diary'
 import { diaryService, uploadFile, deleteFile } from '@/lib/supabase'
@@ -11,6 +12,7 @@ import dayjs from 'dayjs'
 
 export default function WriteContent() {
   const router = useRouter()
+  const { data: session } = useSession()
   const searchParams = useSearchParams()
   const entryIdParam = searchParams.get('id')
   const dateParam = searchParams.get('date')
@@ -41,8 +43,8 @@ export default function WriteContent() {
 
   useEffect(() => {
     // 수정 모드일 때만 기존 일기 로드 (id 기반)
-    if (isEditMode && entryIdParam) {
-      diaryService.getEntryById(entryIdParam).then((entry) => {
+    if (isEditMode && entryIdParam && session?.user?.id) {
+      diaryService.getEntryById(entryIdParam, session.user.id).then((entry) => {
         if (entry) {
           setExistingEntry(entry)
           setSelectedMood(entry.mood)
@@ -62,7 +64,7 @@ export default function WriteContent() {
       setMediaUrls([])
       setIsInitialized(true)
     }
-  }, [entryIdParam, isEditMode, router])
+  }, [entryIdParam, isEditMode, router, session])
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
@@ -134,6 +136,11 @@ export default function WriteContent() {
       return
     }
 
+    if (!session?.user?.id) {
+      alert('로그인이 필요합니다.')
+      return
+    }
+
     setIsLoading(true)
 
     try {
@@ -143,7 +150,7 @@ export default function WriteContent() {
           mood: selectedMood,
           note: note.trim() || undefined,
           media_urls: mediaUrls.length > 0 ? mediaUrls : undefined
-        })
+        }, session.user.id)
 
         if (result) {
           router.push('/')
@@ -160,7 +167,7 @@ export default function WriteContent() {
           media_urls: mediaUrls.length > 0 ? mediaUrls : undefined
         }
 
-        const result = await diaryService.insertEntry(entry)
+        const result = await diaryService.insertEntry(entry, session.user.id)
 
         if (result) {
           router.push('/')

@@ -1,11 +1,13 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useSession } from 'next-auth/react';
 import { DiaryEntry, MoonPhase, MOOD_MAPPINGS } from '@/types/diary';
 import { diaryService } from '@/lib/supabase';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 
 export default function StatisticsChart() {
+  const { data: session } = useSession();
   const [moodCounts, setMoodCounts] = useState<Record<MoonPhase, number>>({
     new: 0,
     waxing: 0,
@@ -14,7 +16,8 @@ export default function StatisticsChart() {
   });
 
   useEffect(() => {
-    diaryService.getAllEntries().then((entries) => {
+    if (!session?.user?.id) return;
+    diaryService.getAllEntries(session.user.id).then((entries) => {
       const counts: Record<MoonPhase, number> = {
         new: 0,
         waxing: 0,
@@ -28,7 +31,7 @@ export default function StatisticsChart() {
 
       setMoodCounts(counts);
     });
-  }, []);
+  }, [session]);
 
   const chartData = Object.entries(MOOD_MAPPINGS).map(([phase, mapping]) => ({
     name: mapping.name,
