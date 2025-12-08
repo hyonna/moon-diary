@@ -92,12 +92,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       // 2. 프로필 생성 (트리거가 자동으로 생성하지만, 세션이 있으면 즉시 생성)
       if (data.user) {
+        const userId = data.user.id
         // 세션이 있으면 프로필 생성 시도
         if (data.session) {
           const { error: profileError } = await supabase
             .from('user_profiles')
             .insert({
-              id: data.user.id,
+              id: userId,
               email: email,
               nickname: nickname,
             })
@@ -116,7 +117,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
           // 프로필 정보 로드 (트리거가 생성했을 수 있으므로 잠시 대기 후 재시도)
           setTimeout(async () => {
-            const userProfile = await fetchProfile(data.user.id)
+            const userProfile = await fetchProfile(userId)
             if (userProfile) {
               setProfile(userProfile)
             }
