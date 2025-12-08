@@ -9,12 +9,17 @@ moon-diary는 하루의 감정을 달의 모양으로 기록하고 시각화하�
 - 🌕 **보름달** → 기쁨/에너지 충만
 - 🌗 **하현달** → 평온/안정
 
-## 기능
+## 주요 기능
 
-- ✨ 달의 모양으로 감정 상태 선택 및 기록
-- 📅 캘린더 형태로 지난 감정들을 한눈에 보기
-- 📊 감정 통계 및 시각화 (파이 차트)
-- 📝 간단한 메모 작성
+- 🔐 **인증 시스템**: NextAuth.js 기반 로그인/회원가입
+- ✨ **감정 기록**: 달의 모양으로 감정 상태 선택 및 기록
+- 📝 **일기 작성**: 텍스트 메모 및 이미지/동영상 첨부
+- 📅 **캘린더 뷰**: 지난 감정들을 캘린더 형태로 한눈에 보기
+- 📊 **통계 분석**: 감정 통계, 차트 시각화, AI 기반 감정 분석
+- 👤 **프로필 관리**: 닉네임 수정, 통계 조회, 회원탈퇴
+- 🌙 **평균 감정**: 우주 배경과 함께 평균 감정 달 이모지 표시
+- 🎲 **랜덤 일기**: 과거 일기 랜덤 보기 기능
+- 🌓 **다크 모드**: 라이트/다크 테마 지원
 
 ## 기술 스택
 
@@ -22,7 +27,10 @@ moon-diary는 하루의 감정을 달의 모양으로 기록하고 시각화하�
 - **Styling**: Tailwind CSS
 - **Animation**: Framer Motion
 - **Charts**: Recharts
-- **Backend**: Supabase
+- **3D Graphics**: Three.js, React Three Fiber
+- **Authentication**: NextAuth.js v5
+- **Backend**: Supabase (Database, Storage)
+- **Form Handling**: React Hook Form
 
 ## 시작하기
 
@@ -32,24 +40,41 @@ moon-diary는 하루의 감정을 달의 모양으로 기록하고 시각화하�
 pnpm install
 ```
 
-### 2. Supabase 설정
+### 2. 환경 변수 설정
+
+프로젝트 루트에 `.env.local` 파일을 생성하고 다음 내용을 추가합니다:
+
+```env
+# Supabase 설정
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url_here
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key_here
+
+# NextAuth.js 설정
+NEXTAUTH_SECRET=your_nextauth_secret_here
+NEXTAUTH_URL=http://localhost:3000
+AUTH_SECRET=your_auth_secret_here
+```
+
+**환경 변수 가져오기:**
 
 1. [Supabase](https://supabase.com)에서 새 프로젝트를 생성합니다.
 2. 프로젝트의 **Settings > API**에서 다음 정보를 확인합니다:
-   - `Project URL` (예: `https://xxxxx.supabase.co`)
-   - `anon public` key
-3. 프로젝트 루트에 `.env.local` 파일을 생성하고 다음 내용을 추가합니다:
+   - `Project URL` → `NEXT_PUBLIC_SUPABASE_URL`
+   - `anon public` key → `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 
-```env
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_url_here
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key_here
+**⚠️ 보안 주의사항:**
+
+- `.env.local` 파일은 절대 Git에 커밋하지 마세요 (`.gitignore`에 포함되어 있어야 합니다)
+- 프로덕션 환경에서는 환경 변수를 안전하게 관리하세요
+
+**NEXTAUTH_SECRET 생성:**
+터미널에서 다음 명령어를 실행하여 안전한 시크릿 키를 생성하세요:
+
+```bash
+openssl rand -base64 32
 ```
 
-### 3. 데이터베이스 테이블 생성
-
-Supabase 대시보드의 **SQL Editor**에서 `supabase-schema.sql` 파일의 내용을 실행합니다.
-
-### 4. 개발 서버 실행
+### 3. 개발 서버 실행
 
 ```bash
 pnpm dev
@@ -61,33 +86,85 @@ pnpm dev
 
 ```
 src/
-├── app/                  # Next.js App Router 페이지
-│   ├── page.tsx         # 홈 페이지
-│   ├── diary/           # 일기 페이지
-│   │   └── page.tsx
-│   └── layout.tsx       # 루트 레이아웃
-├── components/           # React 컴포넌트
-│   ├── DiaryForm.tsx    # 일기 작성 폼
-│   ├── MoodSelector.tsx # 감정 선택 컴포넌트
-│   ├── CalendarView.tsx # 캘린더 뷰
-│   └── StatisticsChart.tsx # 통계 차트
-├── lib/                  # 유틸리티 및 클라이언트
-│   └── supabase.ts      # Supabase 클라이언트 및 서비스
-└── types/                # TypeScript 타입 정의
-    └── diary.ts          # 일기 관련 타입
+├── app/                      # Next.js App Router 페이지
+│   ├── page.tsx             # 홈 페이지 (일기 피드)
+│   ├── login/               # 로그인 페이지
+│   ├── signup/              # 회원가입 페이지
+│   ├── write/               # 일기 작성 페이지
+│   │   ├── page.tsx
+│   │   └── WriteContent.tsx
+│   ├── diary/               # 일기 페이지 (캘린더 뷰)
+│   ├── profile/             # 프로필 및 통계 페이지
+│   ├── api/                 # API 라우트
+│   │   ├── auth/            # NextAuth API
+│   │   └── account/         # 계정 관리 API
+│   ├── Providers.tsx        # 프로바이더 설정
+│   └── layout.tsx           # 루트 레이아웃
+├── components/               # React 컴포넌트
+│   ├── DiaryFeed.tsx        # 일기 피드 컴포넌트
+│   ├── DiaryForm.tsx        # 일기 작성 폼
+│   ├── MoodSelector.tsx     # 감정 선택 컴포넌트
+│   ├── CalendarView.tsx     # 캘린더 뷰
+│   ├── StatisticsChart.tsx  # 통계 차트
+│   ├── BottomNavigation.tsx # 하단 네비게이션
+│   ├── DateFilter.tsx       # 날짜 필터
+│   ├── RandomDiaryModal.tsx # 랜덤 일기 모달
+│   └── ThemeToggle.tsx      # 테마 토글
+├── contexts/                 # React Context
+│   ├── AuthContext.tsx      # 인증 컨텍스트
+│   └── ThemeContext.tsx     # 테마 컨텍스트
+├── lib/                      # 유틸리티 및 클라이언트
+│   ├── supabase.ts          # Supabase 클라이언트 및 서비스
+│   ├── supabaseAdmin.ts     # Supabase Admin 클라이언트
+│   ├── auth.ts              # NextAuth 설정
+│   ├── analyzeStats.ts      # 통계 분석 유틸리티
+│   └── dateUtils.ts         # 날짜 유틸리티
+└── types/                    # TypeScript 타입 정의
+    ├── diary.ts              # 일기 관련 타입
+    └── next-auth.d.ts        # NextAuth 타입 확장
 ```
 
 ## 주요 기능 설명
 
-### 일기 작성 (DiaryForm)
-- 오늘 날짜의 감정 상태를 선택하고 메모를 기록할 수 있습니다.
-- 이미 기록이 있는 경우 자동으로 불러와서 수정할 수 있습니다.
+### 인증 시스템
 
-### 캘린더 뷰 (CalendarView)
-- 선택한 월의 모든 날짜를 캘린더 형태로 표시합니다.
-- 기록된 날짜는 해당하는 달의 이모지가 표시됩니다.
-- 오늘 날짜는 보라색 테두리로 강조됩니다.
+- **로그인/회원가입**: 이메일과 비밀번호 기반 인증
+- **세션 관리**: NextAuth.js를 통한 JWT 기반 세션 관리 (30일 유지)
+- **프로필 관리**: 닉네임 수정, 회원탈퇴 기능
 
-### 통계 차트 (StatisticsChart)
-- 지금까지 기록한 모든 감정 상태를 파이 차트로 시각화합니다.
-- 각 감정 상태별로 몇 일을 기록했는지 확인할 수 있습니다.
+### 일기 작성 (/write)
+
+- 날짜 선택: 원하는 날짜를 선택하여 일기 작성 가능
+- 감정 선택: 달의 모양(신월, 상현달, 보름달, 하현달)으로 감정 상태 선택
+- 메모 작성: 텍스트 메모 작성
+- 미디어 첨부: 이미지 및 동영상 업로드 (최대 100MB)
+- 여러 일기: 같은 날짜에 여러 개의 일기 작성 가능
+
+### 일기 피드 (홈)
+
+- 최신순으로 일기 목록 표시
+- 날짜 필터: 월별로 일기 필터링
+- 랜덤 일기: 과거 일기 랜덤 보기 기능
+- 일기 수정/삭제: 각 일기별 수정 및 삭제 기능
+
+### 캘린더 뷰 (/diary)
+
+- 선택한 월의 모든 날짜를 캘린더 형태로 표시
+- 기록된 날짜는 해당하는 달의 이모지가 표시됩니다
+- 오늘 날짜는 강조 표시됩니다
+
+### 통계 및 프로필 (/profile)
+
+- **통계 요약**:
+  - 우주 배경과 함께 평균 감정 달 이모지 표시
+  - 총 기록일, 기록률 표시
+  - AI 기반 감정 분석 요약
+- **감정별 통계**: 각 감정별 기록일 수 및 비율 표시
+- **기간별 통계**: 월별/년별/전체 기간 선택 가능
+- **활동 차트**: 월별/년별 활동을 막대 차트로 시각화
+- **일별 감정 기록**: 월별 모드에서 날짜별 감정 목록 표시
+- **캘린더 뷰**: 선택한 월의 캘린더와 평균 감정 이모지 표시
+
+## 라이선스
+
+이 프로젝트는 개인 프로젝트입니다.
