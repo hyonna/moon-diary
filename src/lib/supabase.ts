@@ -2,11 +2,21 @@ import { createClient } from '@supabase/supabase-js'
 import { DiaryEntry } from '@/types/diary'
 
 // Supabase 환경 변수는 .env.local에 설정해야 합니다
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co'
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key'
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+
+// 환경 변수 검증 (런타임에서만 체크)
+if (typeof window === 'undefined' && (!supabaseUrl || !supabaseAnonKey || supabaseUrl === 'https://placeholder.supabase.co' || supabaseAnonKey === 'placeholder-key')) {
+  console.error('⚠️ Supabase 환경 변수가 설정되지 않았습니다.')
+  console.error('NEXT_PUBLIC_SUPABASE_URL:', supabaseUrl ? '설정됨' : '미설정')
+  console.error('NEXT_PUBLIC_SUPABASE_ANON_KEY:', supabaseAnonKey ? '설정됨' : '미설정')
+}
 
 // 빌드 시점에는 더미 클라이언트를 생성 (실제 사용 시에는 환경 변수가 필요)
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+export const supabase = createClient(
+  supabaseUrl || 'https://placeholder.supabase.co',
+  supabaseAnonKey || 'placeholder-key'
+)
 
 // 데이터베이스 테이블 이름
 export const DIARY_TABLE = 'diary_entries'

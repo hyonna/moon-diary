@@ -76,6 +76,19 @@ export const authConfig = {
           throw new Error('이메일과 비밀번호를 입력해주세요.')
         }
 
+        // 환경 변수 검증
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+        const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+        
+        if (!supabaseUrl || !supabaseAnonKey || 
+            supabaseUrl === 'https://placeholder.supabase.co' || 
+            supabaseAnonKey === 'placeholder-key') {
+          console.error('⚠️ Supabase 환경 변수가 설정되지 않았습니다.')
+          console.error('NEXT_PUBLIC_SUPABASE_URL:', supabaseUrl || '미설정')
+          console.error('NEXT_PUBLIC_SUPABASE_ANON_KEY:', supabaseAnonKey ? '설정됨 (일부)' : '미설정')
+          throw new Error('서버 설정 오류: Supabase 환경 변수가 설정되지 않았습니다.')
+        }
+
         try {
           // Supabase로 로그인
           const { data, error } = await supabase.auth.signInWithPassword({
@@ -84,10 +97,14 @@ export const authConfig = {
           })
 
           if (error) {
+            console.error('Supabase 로그인 오류:', error)
+            console.error('오류 코드:', error.status)
+            console.error('오류 메시지:', error.message)
             throw new Error(error.message || '로그인에 실패했습니다.')
           }
 
           if (!data.user) {
+            console.error('사용자 데이터가 없습니다.')
             throw new Error('사용자 정보를 찾을 수 없습니다.')
           }
 
