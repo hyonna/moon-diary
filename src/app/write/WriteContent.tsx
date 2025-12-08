@@ -320,7 +320,7 @@ export default function WriteContent() {
             </div>
           ) : (
             <>
-              <div className="flex-1 overflow-y-auto min-h-0">
+              <div className="flex-1 overflow-y-auto overflow-x-hidden min-h-0">
                 <div className="mb-4">
                   <label className="block text-sm font-semibold text-[var(--text-primary)] mb-2">감정 상태</label>
                   <MoodSelector selectedMood={selectedMood} onSelect={setSelectedMood} />

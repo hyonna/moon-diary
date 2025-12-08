@@ -12,7 +12,7 @@ export default function MoodSelector({ selectedMood, onSelect }: MoodSelectorPro
   const moods: MoonPhase[] = ['new', 'waxing', 'full', 'waning'];
 
   return (
-    <div className="flex gap-2">
+    <div className="flex gap-2 overflow-hidden">
       {moods.map((mood) => {
         const mapping = MOOD_MAPPINGS[mood];
         const isSelected = selectedMood === mood;
