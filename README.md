@@ -27,7 +27,6 @@ moon-diary는 하루의 감정을 달의 모양으로 기록하고 시각화하�
 - **Styling**: Tailwind CSS
 - **Animation**: Framer Motion
 - **Charts**: Recharts
-- **3D Graphics**: Three.js, React Three Fiber
 - **Authentication**: NextAuth.js v5
 - **Backend**: Supabase (Database, Storage)
 - **Form Handling**: React Hook Form
