@@ -37,7 +37,8 @@ export default function DiaryFeed({ dateFilter }: DiaryFeedProps) {
           const filterDate = dateUtils.parseDate(filter)
           filteredEntries = allEntries.filter((entry) => {
             const entryDate = dateUtils.parseDate(entry.date)
-            return entryDate.year() === filterDate.year() && entryDate.month() === filterDate.month()
+            // 같은 년도와 같은 월인지 확인 (isSame을 사용하여 더 정확한 비교)
+            return entryDate.isSame(filterDate, 'month')
           })
         }
 

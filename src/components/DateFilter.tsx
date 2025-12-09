@@ -17,6 +17,12 @@ export default function DateFilter({ onFilterChange }: DateFilterProps) {
   const [showYearPicker, setShowYearPicker] = useState(false);
   const [showMonthPicker, setShowMonthPicker] = useState(false);
 
+  // currentMonth가 변경될 때 selectedYear와 selectedMonth 동기화
+  useEffect(() => {
+    setSelectedYear(currentMonth.year());
+    setSelectedMonth(currentMonth.month() + 1);
+  }, [currentMonth]);
+
   useEffect(() => {
     // 선택된 연도/월에 해당하는 월의 첫 번째 날짜로 필터 적용
     const monthStart = dateUtils.getFirstDayOfMonth(
