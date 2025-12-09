@@ -21,7 +21,7 @@ export interface SessionUser {
 export const authConfig = {
   pages: {
     signIn: '/login',
-    error: '/login',
+    error: '/login'
   },
   callbacks: {
     async jwt({ token, user }) {
@@ -34,7 +34,7 @@ export const authConfig = {
           token.accessToken = user.accessToken
         }
       }
-      
+
       // 세션 갱신 시 Supabase에서 최신 프로필 정보 가져오기
       if (token.id) {
         try {
@@ -62,14 +62,14 @@ export const authConfig = {
         session.user.nickname = token.nickname as string
       }
       return session
-    },
+    }
   },
   providers: [
     CredentialsProvider({
       name: 'Credentials',
       credentials: {
         email: { label: 'Email', type: 'email' },
-        password: { label: 'Password', type: 'password' },
+        password: { label: 'Password', type: 'password' }
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
@@ -79,10 +79,13 @@ export const authConfig = {
         // 환경 변수 검증
         const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
         const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-        
-        if (!supabaseUrl || !supabaseAnonKey || 
-            supabaseUrl === 'https://placeholder.supabase.co' || 
-            supabaseAnonKey === 'placeholder-key') {
+
+        if (
+          !supabaseUrl ||
+          !supabaseAnonKey ||
+          supabaseUrl === 'https://placeholder.supabase.co' ||
+          supabaseAnonKey === 'placeholder-key'
+        ) {
           console.error('⚠️ Supabase 환경 변수가 설정되지 않았습니다.')
           console.error('NEXT_PUBLIC_SUPABASE_URL:', supabaseUrl || '미설정')
           console.error('NEXT_PUBLIC_SUPABASE_ANON_KEY:', supabaseAnonKey ? '설정됨 (일부)' : '미설정')
@@ -93,7 +96,7 @@ export const authConfig = {
           // Supabase로 로그인
           const { data, error } = await supabase.auth.signInWithPassword({
             email: credentials.email as string,
-            password: credentials.password as string,
+            password: credentials.password as string
           })
 
           if (error) {
@@ -122,8 +125,8 @@ export const authConfig = {
               .from('user_profiles')
               .insert({
                 id: data.user.id,
-                email: data.user.email || credentials.email as string,
-                nickname: data.user.user_metadata?.nickname || data.user.email?.split('@')[0] || '사용자',
+                email: data.user.email || (credentials.email as string),
+                nickname: data.user.user_metadata?.nickname || data.user.email?.split('@')[0] || '사용자'
               })
               .select()
               .single()
@@ -136,7 +139,7 @@ export const authConfig = {
                 .select('*')
                 .eq('id', data.user.id)
                 .maybeSingle()
-              
+
               if (!retryProfile) {
                 throw new Error('프로필 생성에 실패했습니다.')
               }
@@ -154,7 +157,7 @@ export const authConfig = {
             id: data.user.id,
             email: profile.email,
             nickname: profile.nickname,
-            accessToken: data.session?.access_token,
+            accessToken: data.session?.access_token
           }
         } catch (error) {
           console.error('Authorization error:', error)
@@ -163,16 +166,15 @@ export const authConfig = {
           }
           throw new Error('로그인 중 오류가 발생했습니다.')
         }
-      },
-    }),
+      }
+    })
   ],
   session: {
     strategy: 'jwt',
-    maxAge: 30 * 24 * 60 * 60, // 30일
+    maxAge: 30 * 24 * 60 * 60 // 30일
   },
   trustHost: true, // NextAuth.js v5에서 필요
-  secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
+  secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET
 } satisfies NextAuthConfig
 
 export const { handlers, auth, signIn, signOut } = NextAuth(authConfig)
-

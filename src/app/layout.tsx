@@ -1,5 +1,7 @@
 import './globals.css'
 import { Providers } from './Providers'
+import { Analytics } from '@vercel/analytics/next'
+import { SpeedInsights } from '@vercel/speed-insights/next'
 
 export const metadata = {
   title: 'Moon Diary - 오늘의 감정, 달로 기록하다',
@@ -22,6 +24,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             {children}
           </div>
         </Providers>
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   )
